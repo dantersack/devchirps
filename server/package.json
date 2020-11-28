@@ -16,10 +16,14 @@
     "@apollo/gateway": "^0.21.3",
     "apollo-server": "^2.19.0",
     "apollo-server-express": "^2.19.0",
+    "auth0": "^2.30.0",
     "dotenv": "^8.2.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
     "graphql": "^15.4.0",
+    "jwks-rsa": "^1.11.0",
+    "request": "^2.88.2",
     "wait-on": "^5.2.0"
   },
   "devDependencies": {
