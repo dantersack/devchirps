@@ -13,6 +13,16 @@ const resolvers = {
         },
         createdAt(account, args, context, info) {
             return account.created_at
+        },
+        isBlocked(account, args, context, info) {
+            return account.blocked
+        },
+        isModerator(account, args, context, info) {
+            return (
+                account.app_metadata &&
+                account.app_metadata.roles &&
+                account.app_metadata.roles.includes('moderator')
+            )
         }
     },
 
@@ -34,6 +44,19 @@ const resolvers = {
     Mutation: {
         createAccount(parent, {data: {email, password}}, context, info) {
             return auth0.createUser({
+                app_metadata: {
+                    groups: [],
+                    roles: ['author'],
+                    permissions: [
+                        'read:own_account',
+                        'edit:own_account',
+                        'read:any_profile',
+                        'edit:own_profile',
+                        'read:any_content',
+                        'edit:own_content',
+                        'upload:own_media'
+                    ]
+                },
                 connection: 'Username-Password-Authentication',
                 email,
                 password
@@ -64,6 +87,50 @@ const resolvers = {
             }
 
             return auth0.updateUser({id}, {email})
+        },
+        async changeAccountBlockedStatus(
+            parent,
+            {where: {id}},
+            context,
+            info
+        ) {
+            const {blocked} = await auth0.getUser({id})
+            return auth0.updateUser({id}, {blocked: !blocked})
+        },
+        async changeAccountModeratorRole(
+            parent,
+            {where: {id}},
+            context,
+            info
+        ) {
+            const authorPermissions = [
+                'read:own_account',
+                'edit:own_account',
+                'read:any_profile',
+                'edit:own_profile',
+                'read:any_content',
+                'edit:own_content',
+                'upload:own_media'
+            ]
+
+            const moderatorPermissions = [
+                'read:any_account',
+                'block:any_account',
+                'promote:any_account',
+                'block:any_content'
+            ]
+
+            const user = await auth0.getUser({id})
+            const isModerator = user.app_metadata.roles.includes('moderator')
+            const roles = isModerator ? ['author'] : ['moderator']
+            const permissions = isModerator
+                ? authorPermissions
+                : authorPermissions.concat(moderatorPermissions)
+            
+            return auth0.updateUser(
+                {id},
+                {app_metadata: {groups: [], roles, permissions}}
+            )
         }
     }
 }
