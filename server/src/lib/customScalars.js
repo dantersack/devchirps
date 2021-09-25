@@ -7,8 +7,6 @@ export const DateTimeResolver = new GraphQLScalarType({
     description: 'An ISO 8601-encoded UTC date string.',
     parseValue: value => {
         if (isISO8601(value)) {
-            console.log(value)
-            console.log(isISO8601(value))
             return value
         }
 
